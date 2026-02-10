@@ -10,9 +10,9 @@
     env: "dev"
     ZONE_ID: "Z07326442Z8C3IRLJ3030"
     DOMAIN_NAME: "cloudkarna.in"
-    Instance:
-      dynamodb
-      cart
+    Instances:
+      - dynamodb
+      - cart
 
   tasks:
   - name: Instance creation
@@ -27,7 +27,7 @@
         component: "{{item}}"
         Environment: "{{env}}"
         name: "{item}}-{{env}}"
-    loop: "{{Instance}}"
+    loop: "{{Instances}}"
     register: ec2
 
   - name: print the output
