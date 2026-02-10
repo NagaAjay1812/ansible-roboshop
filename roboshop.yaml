@@ -1,3 +1,4 @@
+# download py library botocore and boto3 becoz ansible run in python
 - name : Instance and route53 creation
   hosts: all
   connection: local
