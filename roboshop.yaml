@@ -4,7 +4,7 @@
   hosts: all
   connection: local
 
-  become: yes
+  become: false
   vars:
     ami_id: "ami-0220d79f3f480ecf5"
     SG_ID: "sg-0b1f7c3d25067bf9a"
@@ -12,6 +12,7 @@
     env: "dev"
     ZONE_ID: "Z07326442Z8C3IRLJ3030"
     DOMAIN_NAME: "cloudkarna.in"
+    
     Instances:
       - dynamodb
       - cart
@@ -25,10 +26,11 @@
       security_group: "{{SG_ID}}"
       vpc_subnet_id: "{{SUBNET_ID}}"
       tags:
+        Name: "{{ item }}-{{ env }}"
         project: roboshop
         component: "{{ item }}"
         Environment: "{{ env }}"
-        name: "{{ item }}-{{ env }}"
+        
     loop: "{{ Instances }}"
     register: ec2
 
