@@ -1,0 +1,41 @@
+- name : create ec2 and route53 records
+  hosts: all
+  connection: local
+
+  vars:
+    ami_id: ami-0220d79f3f480ecf5
+    sg_id: sg-0b1f7c3d25067bf9a
+    SUBNET_ID: subnet-0bb417478919bf408
+    env: dev
+    ZONE_ID: Z07326442Z8C3IRLJ3030
+    DOMAIN_NAME: cloudkarna.in
+
+    instances:
+    - dyamnodb
+    - catalogue
+
+  tasks:
+  - name: Launching AWS instance
+    amazon.aws.ec2_instance:
+      instance_type: t3.micro
+      image_id: "{{ ami_id }}" # Replace with a valid AMI ID
+      region: us-east-1
+      security_group: "{{ dec_grp }}"
+      state: present
+      vpc_subnet_id: "{{SUBNET_ID}}"
+      tags:
+        Name: "{{ item }}-{{ env }}"
+        project: roboshop
+        component: "{{ item }}"
+        env: "{{ env }}"
+
+    
+    loop: "{{ instances }}"
+    register: ec2_info
+    when: action == "create"
+
+  
+  - name: print the output
+    ansible.builtin.debug:
+      msg: "{{ ec2_output }}"
+    when: action == "create"
