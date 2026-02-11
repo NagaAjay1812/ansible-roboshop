@@ -38,7 +38,7 @@
   - name: print the output
     ansible.builtin.debug:
       msg: "{{ ec2 }}"
-      when: action == "create"
+    when: action == "create"
     
   
   - name: create route53
