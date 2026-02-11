@@ -12,7 +12,7 @@
     env: "dev"
     ZONE_ID: "Z07326442Z8C3IRLJ3030"
     DOMAIN_NAME: "cloudkarna.in"
-    
+
     Instances:
       - dynamodb
       - cart
@@ -39,3 +39,20 @@
       msg: "{{ ec2 }}"
     
   
+
+  
+  - name: create route53
+    amazon.aws.route53:
+      state: present
+      zone: "{{ DOMAIN_NAME }}" # cloudkarna.in
+      record: "{{ item.item }}-{{ env }}.{{ DOMAIN_NAME }}" #mongodb-dev.cloudkarna.in
+      type: A
+      ttl: 1
+      value: "{{ item.instances[0].private_ip_address }}" #first entry inside instance oth position and get private IP
+      register: a_record_change
+    
+
+  - name: Print summary
+    ansible.builtin.debug:
+      msg: "Created {{ item.item }}-{{ env }} => {{ item.instances[0].private_ip_address }}"
+    loop: "{{ ec2.results }}"
