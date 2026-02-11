@@ -32,10 +32,9 @@
     
     loop: "{{ instances }}"
     register: ec2_info
-    when: action == "create"
 
   
   - name: print the output
     ansible.builtin.debug:
       msg: "{{ ec2_output }}"
-    when: action == "create"
+    
