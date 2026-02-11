@@ -51,7 +51,7 @@
       value: "{{ item.instances[0].private_ip_address }}" #first entry inside instance oth position and get private IP
     loop: "{{ ec2.results }}"
     register: a_record_change
-    
+    when: action == "create"
   
 
   - name: Print summary
