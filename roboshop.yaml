@@ -77,14 +77,14 @@
 ## DESTROY
   - name: delete route53
     amazon.aws.route53:
-      state: abscent
+      state: absent
       zone: "{{ DOMAIN_NAME }}" # cloudkarna.in
       record: "roboshop-{{ env }}.{{ DOMAIN_NAME }}" #mongodb-dev.cloudkarna.in frontend-dev.cloudkarna.in
       type: A
       ttl: 1
       value: "{{ item.instances[0].public_ip_address }}" #first entry inside instance oth position and get private IP
     register: a_record_change
-    loop: "{{ ec2_output.results }}"
+    loop: "{{ ec2.results }}"
     when:  # and
     - item.item == "frontend"
     - action == "destroy"
