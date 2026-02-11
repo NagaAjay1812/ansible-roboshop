@@ -67,8 +67,9 @@
       type: A
       ttl: 1
       value: "{{ item.instances[0].public_ip_address }}" #first entry inside instance oth position and get private IP
-      register: a_record_change
-    loop: "{{ ec2_output.results }}"
+    register: a_record_change
+    loop: "{{ ec2.results }}"
+
     when:  # and
     - item.item == "frontend"
     - action == "create"
@@ -82,7 +83,7 @@
       type: A
       ttl: 1
       value: "{{ item.instances[0].public_ip_address }}" #first entry inside instance oth position and get private IP
-      register: a_record_change
+    register: a_record_change
     loop: "{{ ec2_output.results }}"
     when:  # and
     - item.item == "frontend"
@@ -93,5 +94,5 @@
     amazon.aws.ec2_instance:
       state: absent
       name: "{{ item }}-{{ env }}"
-    loop: "{{ instances }}"
+    loop: "{{ Instances }}"
     when: action == "destroy"
