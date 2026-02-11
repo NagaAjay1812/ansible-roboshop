@@ -39,13 +39,13 @@
       msg: "{{ ec2 }}"
     
   
-
+## create
   
   - name: create route53
     amazon.aws.route53:
       state: present
       zone: "{{ DOMAIN_NAME }}" # cloudkarna.in
-      record: "{{ item.item }}-{{ env }}.{{ DOMAIN_NAME }}" #mongodb-dev.cloudkarna.in
+      record: "{{ item.item }}-{{ env }}.{{ DOMAIN_NAME }}" #mongodb-dev.cloudkarna.in frontend-dev.cloudkarna.in
       type: A
       ttl: 1
       value: "{{ item.instances[0].private_ip_address }}" #first entry inside instance oth position and get private IP
@@ -56,3 +56,40 @@
     ansible.builtin.debug:
       msg: "Created {{ item.item }}-{{ env }} => {{ item.instances[0].private_ip_address }}"
     loop: "{{ ec2.results }}"
+
+  - name: create route53
+    amazon.aws.route53:
+      state: present
+      zone: "{{ DOMAIN_NAME }}" # cloudkarna.in
+      record: "roboshop-{{ env }}.{{ DOMAIN_NAME }}" #mongodb-dev.cloudkarna.in frontend-dev.cloudkarna.in
+      type: A
+      ttl: 1
+      value: "{{ item.instances[0].public_ip_address }}" #first entry inside instance oth position and get private IP
+      register: a_record_change
+    loop: "{{ ec2_output.results }}"
+    when:  # and
+    - item.item == "frontend"
+    - action == "create"
+
+## DESTROY
+  - name: delete route53
+    amazon.aws.route53:
+      state: abscent
+      zone: "{{ DOMAIN_NAME }}" # cloudkarna.in
+      record: "roboshop-{{ env }}.{{ DOMAIN_NAME }}" #mongodb-dev.cloudkarna.in frontend-dev.cloudkarna.in
+      type: A
+      ttl: 1
+      value: "{{ item.instances[0].public_ip_address }}" #first entry inside instance oth position and get private IP
+      register: a_record_change
+    loop: "{{ ec2_output.results }}"
+    when:  # and
+    - item.item == "frontend"
+    - action == "destroy"
+
+  
+  - name: delete ec2 instance
+    amazon.aws.ec2_instance:
+      state: absent
+      name: "{{ item }}-{{ env }}"
+    loop: "{{ instances }}"
+    when: action == "destroy"
