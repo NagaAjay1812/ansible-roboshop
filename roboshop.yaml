@@ -49,13 +49,15 @@
       type: A
       ttl: 1
       value: "{{ item.instances[0].private_ip_address }}" #first entry inside instance oth position and get private IP
-      register: a_record_change
+    loop: "{{ ec2.results }}"
+    register: a_record_change
     
+  
 
   - name: Print summary
     ansible.builtin.debug:
       msg: "Created {{ item.item }}-{{ env }} => {{ item.instances[0].private_ip_address }}"
-    loop: "{{ ec2.results }}"
+    when: action == "create"
 
   - name: create route53
     amazon.aws.route53:
