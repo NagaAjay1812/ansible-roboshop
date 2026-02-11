@@ -42,7 +42,7 @@
     amazon.aws.route53:
       state: present
       zone: "{{ DOMAIN_NAME }}"
-      record: "{{ item.item }}- {{ env }}.{{ DOMAIN_NAME }}" #dynamodb-dev.cloudkarna.in, frontend-dev.cloudkarna.in
+      record: "{{ item.item }}-{{ env }}.{{ DOMAIN_NAME }}" #dynamodb-dev.cloudkarna.in, frontend-dev.cloudkarna.in
       type: A
       ttl: 1
       value: "{{ item.instances[0].private_ip_address}}"
