@@ -36,4 +36,17 @@
   - name: print the output
     ansible.builtin.debug:
       msg: "{{ ec2_info }}"
+
+
+  - name: Create a new A record in Route 53
+    amazon.aws.route53:
+      state: present
+      zone: "{{ DOMAIN_NAME }}"
+      record: "{{ item.item }}- {{ env }}.{{ DOMAIN_NAME }}" #dynamodb-dev.cloudkarna.in
+      type: A
+      ttl: 1
+      value: "{{ item.instances[0].private_ip_address}}"
+      wait: true
+
+    loop: "{{ ec2_info.results }}"
     
