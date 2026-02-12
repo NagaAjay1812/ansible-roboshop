@@ -1,0 +1,31 @@
+- name: mongodb configuration
+  hosts: mongodb
+  become: yes
+
+  tasks:
+  - name: copy mongo repo
+    ansible.builtin.copy:
+      src: mongo.repo
+      dest: /etc/yum.repos.d/mongo.repo
+
+  - name: Install mongodb server
+    ansible.builtin.dnf:
+      name: mongodb-org 
+      state: present
+
+  - name: allow the remote access 
+    ansible.builtin.lineinfile:
+        path: /etc/mongod.conf # The path to the file on the remote host
+        regexp: '^bind_address = 127\.0\.0\.1$' # The regular expression to match the old line
+        line: 'bind_address = 0.0.0.0' # The new line
+
+  - name: Enable and start the service
+    ansible.builtin.service:
+      name: mongod
+      enabled: yes
+      state: started
+
+  - name: Restartthe service
+    ansible.builtin.service:
+      name: mongod
+      state: restarted
