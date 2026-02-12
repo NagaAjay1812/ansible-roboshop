@@ -1,0 +1,66 @@
+# download py library botocore and boto3 becoz ansible develoed in python ;  in background python code will execute 
+# pip3.9 install botocore boto3
+
+- name : create ec2 and route53 records
+  hosts: all
+  connection: local
+
+  vars:
+    ami_id: ami-0220d79f3f480ecf5
+    sg_id: sg-0b1f7c3d25067bf9a
+    SUBNET_ID: subnet-0bb417478919bf408
+    env: dev
+    ZONE_ID: Z07326442Z8C3IRLJ3030
+    DOMAIN_NAME: cloudkarna.in
+
+    instances:
+    - dynamodb
+    - catalogue
+
+  tasks:
+  - name: Launching AWS instance
+    amazon.aws.ec2_instance:
+      instance_type: t3.micro
+      image_id: "{{ ami_id }}" # Replace with a valid AMI ID
+      region: us-east-1
+      security_group: "{{ sg_id }}"
+      state: present
+      vpc_subnet_id: "{{SUBNET_ID}}"
+      tags:
+        Name: "{{ item }}-{{ env }}"
+        project: roboshop
+        component: "{{ item }}"
+        env: "{{ env }}"
+
+    loop: "{{ instances }}"
+    register: ec2_info
+
+  
+  - name: print the output
+    ansible.builtin.debug:
+      msg: "{{ ec2_info }}"
+
+
+  - name: Create a new A record in Route 53
+    amazon.aws.route53:
+      state: present
+      zone: "{{ DOMAIN_NAME }}"  #cloudkarna.in
+      record: "{{ item.item }}-{{ env }}.{{ DOMAIN_NAME }}" #dynamodb-dev.cloudkarna.in, frontend-dev.cloudkarna.in
+      type: A
+      ttl: 1
+      value: "{{ item.instances[0].private_ip_address}}"
+      wait: true
+
+    loop: "{{ ec2_info.results }}"
+
+  - name: create r53 records
+    amazon.aws.route53:
+      state: present
+      zone: "{{ domain_name }}" #cloudkarna.in
+      record: "roboshop-{{ env }}.{{ domain_name }}" # roboshop-dev.daws88s.online
+      type: A
+      ttl: 1
+      value: "{{ item.instances[0].public_ip_address }}"
+      wait: true
+    loop: "{{ ec2_info.results }}"
+    when: item.item == "frontend"
