@@ -16,6 +16,7 @@
     instances:
     - dynamodb
     - catalogue
+    - mongodb
 
   tasks:
   - name: Launching AWS instance
