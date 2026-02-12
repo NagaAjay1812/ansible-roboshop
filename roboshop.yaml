@@ -8,10 +8,10 @@
   vars:
     ami_id: ami-0220d79f3f480ecf5
     sg_id: sg-0b1f7c3d25067bf9a
-    SUBNET_ID: subnet-0bb417478919bf408
+    subnet_id: subnet-0bb417478919bf408
     env: dev
-    ZONE_ID: Z07326442Z8C3IRLJ3030
-    DOMAIN_NAME: cloudkarna.in
+    zone_id: Z07326442Z8C3IRLJ3030
+    domain_name: cloudkarna.in
 
     instances:
     - dynamodb
@@ -26,7 +26,7 @@
       region: us-east-1
       security_group: "{{ sg_id }}"
       state: present
-      vpc_subnet_id: "{{SUBNET_ID}}"
+      vpc_subnet_id: "{{ subnet_id }}"
       tags:
         Name: "{{ item }}-{{ env }}"
         project: roboshop
@@ -34,35 +34,35 @@
         env: "{{ env }}"
 
     loop: "{{ instances }}"
-    register: ec2_output
+    register: ec2_info
 
   
   - name: print the output
     ansible.builtin.debug:
-      msg: "{{ ec2_output }}"
+      msg: "{{ ec2_info }}"
 
 
   - name: Create a new A record in Route 53
     amazon.aws.route53:
       state: present
-      zone: "{{ DOMAIN_NAME }}"  #cloudkarna.in
-      record: "{{ item.item }}-{{ env }}.{{ DOMAIN_NAME }}" #dynamodb-dev.cloudkarna.in, frontend-dev.cloudkarna.in
+      zone: "{{ domain_name }}"  #cloudkarna.in
+      record: "{{ item.item }}-{{ env }}.{{ domain_name }}" #dynamodb-dev.cloudkarna.in, frontend-dev.cloudkarna.in
       type: A
       ttl: 1
       value: "{{ item.instances[0].private_ip_address }}"
       wait: true
 
-    loop: "{{ ec2_output.results }}"
+    loop: "{{ ec2_info.results }}"
 
   - name: create r53 records
     amazon.aws.route53:
       state: present
-      zone: "{{ DOMAIN_NAME }}" #cloudkarna.in
-      record: "roboshop-{{ env }}.{{ DOMAIN_NAME }}" # roboshop-dev.cloudkarna.in
+      zone: "{{ domain_name }}" #cloudkarna.in
+      record: "roboshop-{{ env }}.{{ domain_name }}" # roboshop-dev.cloudkarna.in
       type: A
       ttl: 1
       value: "{{ item.instances[0].public_ip_address }}"
       wait: true
 
-    loop: "{{ ec2_output.results }}"
+    loop: "{{ ec2_info.results }}"
     when: item.item == "frontend"
