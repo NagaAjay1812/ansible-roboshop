@@ -34,12 +34,12 @@
         env: "{{ env }}"
 
     loop: "{{ instances }}"
-    register: ec2_info
+    register: ec2_output
 
   
   - name: print the output
     ansible.builtin.debug:
-      msg: "{{ ec2_info }}"
+      msg: "{{ ec2_output }}"
 
 
   - name: Create a new A record in Route 53
@@ -49,19 +49,20 @@
       record: "{{ item.item }}-{{ env }}.{{ DOMAIN_NAME }}" #dynamodb-dev.cloudkarna.in, frontend-dev.cloudkarna.in
       type: A
       ttl: 1
-      value: "{{ item.instances[0].private_ip_address}}"
+      value: "{{ item.instances[0].private_ip_address }}"
       wait: true
 
-    loop: "{{ ec2_info.results }}"
+    loop: "{{ ec2_output.results }}"
 
   - name: create r53 records
     amazon.aws.route53:
       state: present
-      zone: "{{ domain_name }}" #cloudkarna.in
-      record: "roboshop-{{ env }}.{{ domain_name }}" # roboshop-dev.daws88s.online
+      zone: "{{ DOMAIN_NAME }}" #cloudkarna.in
+      record: "roboshop-{{ env }}.{{ DOMAIN_NAME }}" # roboshop-dev.cloudkarna.in
       type: A
       ttl: 1
       value: "{{ item.instances[0].public_ip_address }}"
       wait: true
-    loop: "{{ ec2_info.results }}"
+
+    loop: "{{ ec2_output.results }}"
     when: item.item == "frontend"
