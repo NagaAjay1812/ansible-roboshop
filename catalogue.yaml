@@ -13,7 +13,7 @@
       state: present
 
   - name: creating the system user roboshop
-    ansibile.builtin.user: 
+    ansible.builtin.user: 
       name: roboshop
       system: true #system user 
       home: /app #optionally setting home
@@ -26,7 +26,7 @@
       state: directory
 
   - name: Downloading the code
-    ansibile.builtin.command: curl -o /tmp/catalogue.zip https://roboshop-artifacts.s3.amazonaws.com/catalogue-v3.zip 
+    ansible.builtin.command: curl -o /tmp/catalogue.zip https://roboshop-artifacts.s3.amazonaws.com/catalogue-v3.zip 
   
   - name: Unzip the code
     ansible.builtin.unarchive:
@@ -66,7 +66,7 @@
       state: latest
 
   - name: Load the data
-    ansibile.builtin.command: mongosh --host mongodb-dev.cloudkarna.in </app/db/master-data.js
+    ansible.builtin.command: mongosh --host mongodb-dev.cloudkarna.in </app/db/master-data.js
 
   
   
