@@ -20,7 +20,7 @@
       comment: roboshop system user
 
 
-  - name: delete app directory    # why because because its laredy created first time when you run this play
+  - name: delete app directory    # why we are deleting the directory because if you running the code/play/script meanas there are code changes right or you redeplying the play  if code already existed ansible will skip if you run the play so that why we are deleting.
     ansible.builtin.file:
       path: /app
       state: absent
@@ -39,7 +39,7 @@
     ansible.builtin.unarchive:
       src: /tmp/catalogue.zip
       dest: /app
-      remote_src: yes # what is remote here catalogue not ansible and we've already downloaded the app code above cmd "get_url" so that why we need to mention remote_src: yes otherwise you wll get error if you remove this one 
+      remote_src: yes # what is remote here: catalogue not ansible and we've already downloaded the app code above cmd "get_url" so that why we need to mention remote_src: yes otherwise you wll get error if you remove this one 
 
   - name: Install the dependencies
     community.general.npm:
