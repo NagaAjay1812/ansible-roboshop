@@ -19,10 +19,11 @@
       shell: /sbin/nologin
       comment: roboshop system user
 
-  # - name: delete app directory
-  #   ansible.builtin.file:
-  #     path: /app
-  #     state: directory
+
+  - name: delete app directory    # why because because its laredy created first time when you run this play
+    ansible.builtin.file:
+      path: /app
+      state: absent
 
   - name: create app directory
     ansible.builtin.file:
@@ -39,11 +40,6 @@
       src: /tmp/catalogue.zip
       dest: /app
       remote_src: yes # what is remote here catalogue not ansible and we've already downloaded the app code above cmd "get_url" so that why we need to mention remote_src: yes otherwise you wll get error if you remove this one 
-
-  # - name: Go to the specified directory 
-  #   ansible.builtin.command:
-  #     args:
-  #       chdir: /app
 
   - name: Install the dependencies
     community.general.npm:
