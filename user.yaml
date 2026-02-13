@@ -52,7 +52,7 @@
       state: present
 
   - name: copy the user service
-    ansible.builtin.copy:
+    ansible.builtin.template:        #We use the template module because it understands variables. It searches for the variable placeholders and replaces them with actual values. Otherwise, Ansible will treat them as plain text, and we may get errors. 
       src: user.service
       dest: /etc/systemd/system/user.service
 
