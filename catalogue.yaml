@@ -40,17 +40,17 @@
       dest: /app
       remote_src: yes # what is remote here catalogue not ansible and we've already downloaded the app code above cmd "get_url" so that why we need to mention remote_src: yes otherwise you wll get error if you remove this one 
 
-  - name: Go to the specified directory 
-    ansible.builtin.command:
-      args:
-        chdir: /app
+  # - name: Go to the specified directory 
+  #   ansible.builtin.command:
+  #     args:
+  #       chdir: /app
 
   - name: Install the dependencies
     community.general.npm:
       path: /app # Directory containing package.json
       state: present
 
-  - name: copy the files
+  - name: copy the catalogue service
     ansible.builtin.copy:
       src: catalogue.service
       dest: /etc/systemd/system/catalogue.service
@@ -73,6 +73,11 @@
     ansible.builtin.debug:
       msg: "{{ catalogue_output }}"
 
+  - name: Load the data
+    ansible.builtin.shell: mongosh --host "{{ MONGODB_HOST }}" </app/db/master-data.js #comand module will not work because  we are doing redrection
+    when: catalogue_output.stdout | int < 0  # before catalogue_output.stdout<0 we cant compare string with number so i converted string to integer using pipe
+
+
   - name: Start or enable catalogue with daemon-reload
     ansible.builtin.systemd:
       name: catalogue
@@ -82,8 +87,7 @@
       
 
 
-  # - name: Load the data
-  #   ansible.builtin.command: mongosh --host mongodb-dev.cloudkarna.in </app/db/master-data.js
+  
 
   
   
