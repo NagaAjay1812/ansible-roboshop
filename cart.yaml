@@ -1,0 +1,83 @@
+- name: catalouge configurations
+  hosts: cart
+  become: yes
+
+  tasks:
+  - name: Enable nodejs:20                                        # we dont have option to enable the secific version of nodejs in dnf module so we are using command module and we are not doing reirection or pipeing so thats why we are not using shell
+    ansible.builtin.command: dnf module enable nodejs:20 -y
+
+  - name: install nodejs
+    ansible.builtin.dnf:
+      name: nodejs
+      state: present
+
+  - name: creating the system cart roboshop
+    ansible.builtin.user: 
+      name: roboshop
+      system: true #system user 
+      home: /app #optionally setting home
+      shell: /sbin/nologin
+      comment: roboshop system user
+
+
+  - name: delete app directory    # Why are we deleting the directory? If we are running the playbook again, that means there might be code changes, right? If the code already exists, Ansible will skip the task when we run the playbook. So is that why we are deleting it?
+    ansible.builtin.file:
+      path: /app
+      state: absent
+
+  - name: create app directory
+    ansible.builtin.file:
+      path: /app
+      state: directory
+
+  - name: Delete the cart zip file #Why are we deleting the zip file? If we are running the playbook again, that means there might be code changes, right? If the code already exists, Ansible will skip the task when we run the playbook. So is that why we are deleting it?
+    ansible.builtin.file: 
+      path: /tmp/cart.zip
+      state: absent
+
+  - name: Downloading the cart zip file
+    ansible.builtin.get_url: 
+      url: https://roboshop-artifacts.s3.amazonaws.com/cart-v3.zip 
+      dest: /tmp/cart.zip
+
+  - name: Unzip the code
+    ansible.builtin.unarchive:
+      src: /tmp/cart.zip
+      dest: /app
+      remote_src: yes #What does remote_src mean here? The cart code is not on the Ansible control node — it is already downloaded on the target server using the get_url command. So why do we need to mention remote_src: yes? If we remove it, we get an error.
+
+  - name: Install the dependencies
+    community.general.npm:
+      path: /app # Directory containing package.json
+      state: present
+
+  - name: copy the cart service
+    ansible.builtin.copy:
+      src: cart.service
+      dest: /etc/systemd/system/cart.service
+
+  - name: copy mongo repo
+    ansible.builtin.copy:
+      src: mongo.repo
+      dest: /etc/yum.repos.d/mongo.repo
+
+  - name: Install MongoDB Client Package
+    ansible.builtin.dnf:
+      name: mongodb-mongosh
+      state: present
+
+
+  - name: Start, enable & daemon-reload cart service
+    ansible.builtin.systemd:
+      name: cart
+      daemon_reload: yes
+      state: restarted      #why we are restaring if its running it will restart 
+      enabled: yes
+      
+
+
+  
+
+  
+  
+  
