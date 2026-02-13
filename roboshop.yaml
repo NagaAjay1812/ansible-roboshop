@@ -2,7 +2,7 @@
 # pip3.9 install botocore boto3
 
 - name : create ec2 and route53 records
-  hosts: localhost
+  hosts: all
   connection: local
 
   vars:
@@ -51,7 +51,7 @@
       ttl: 1
       value: "{{ item.instances[0].private_ip_address }}"
       overwrite: true
-
+      wait: false
     loop: "{{ ec2_info.results }}"  #list
     when: action == "create"
 
@@ -65,6 +65,7 @@
       ttl: 1
       value: "{{ item.instances[0].public_ip_address }}"
       overwrite: true
+      wait: false
 
     loop: "{{ ec2_info.results }}" #list
     when: # and

@@ -56,13 +56,6 @@
       src: catalogue.service
       dest: /etc/systemd/system/catalogue.service
 
-  - name: Start or enable catalogue with daemon-reload
-    ansible.builtin.systemd:
-      name: catalogue
-      state: started
-      enabled: yes
-      daemon_reload: yes
-
   - name: copy mongo repo
     ansible.builtin.copy:
       src: mongo.repo
@@ -71,7 +64,24 @@
   - name: Install MongoDB Client Package
     ansible.builtin.dnf:
       name: mongodb-mongosh
-      state: latest
+      state: present
+
+  - name: Check products loaded or not
+    ansible.builtin.command: mongosh --host "{{ MONGODB_HOST }}" --quiet  --eval 'db.getMongo().getDBNames().indexOf("catalogue")'
+    register: catalogue_output
+
+  - name: print the output
+    ansible.builtin.debug:
+      msg: "{{ catalogue_output }}"
+
+  - name: Start or enable catalogue with daemon-reload
+    ansible.builtin.systemd:
+      name: catalogue
+      daemon_reload: yes
+      state: started
+      enabled: yes
+      
+
 
   - name: Load the data
     ansible.builtin.command: mongosh --host mongodb-dev.cloudkarna.in </app/db/master-data.js
