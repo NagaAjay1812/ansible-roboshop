@@ -56,16 +56,6 @@
       src: cart.service
       dest: /etc/systemd/system/cart.service
 
-  - name: copy mongo repo
-    ansible.builtin.copy:
-      src: mongo.repo
-      dest: /etc/yum.repos.d/mongo.repo
-
-  - name: Install MongoDB Client Package
-    ansible.builtin.dnf:
-      name: mongodb-mongosh
-      state: present
-
 
   - name: Start, enable & daemon-reload cart service
     ansible.builtin.systemd:
