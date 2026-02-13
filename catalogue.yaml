@@ -4,7 +4,7 @@
   become: yes
 
   tasks:
-  - name: Enable nodejs:20                                        # we dont have option to enable the secific version of nodejs in dnf module s we are using command module
+  - name: Enable nodejs:20                                        # we dont have option to enable the secific version of nodejs in dnf module s we are using command module and we are not doing reirection or pipeing so thats why we are not using shell
     ansible.builtin.command: dnf module enable nodejs:20
 
   - name: install nodejs
@@ -20,20 +20,26 @@
       shell: /sbin/nologin
       comment: roboshop system user
 
+  # - name: delete app directory
+  #   ansible.builtin.file:
+  #     path: /app
+  #     state: directory
+
   - name: create app directory
     ansible.builtin.file:
       path: /app
       state: directory
 
-  - name: Downloading the cataloguecode
+  - name: Downloading the catalogue code
     ansible.builtin.get_url: 
       url: https://roboshop-artifacts.s3.amazonaws.com/catalogue-v3.zip 
       dest: /tmp/catalogue.zip
-      
+
   - name: Unzip the code
     ansible.builtin.unarchive:
       src: /tmp/catalogue.zip
       dest: /app
+      remote_src: yes # what is remote here catalogue not ansible and we've already downloaded the app code above cmd "get_url" so that why we need to mention remote_src: yes otherwise you wll get error if you remove this one 
 
   - name: Go to the specified directory 
     ansible.builtin.command:
