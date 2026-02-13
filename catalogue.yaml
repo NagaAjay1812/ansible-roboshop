@@ -83,8 +83,8 @@
       
 
 
-  - name: Load the data
-    ansible.builtin.command: mongosh --host mongodb-dev.cloudkarna.in </app/db/master-data.js
+  # - name: Load the data
+  #   ansible.builtin.command: mongosh --host mongodb-dev.cloudkarna.in </app/db/master-data.js
 
   
   
