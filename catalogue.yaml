@@ -1,6 +1,5 @@
 - name: catalouge configurations
   hosts: catalogue
-  connection: local
   become: yes
 
   tasks:
