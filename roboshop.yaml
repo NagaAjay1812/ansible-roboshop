@@ -50,7 +50,7 @@
       type: A
       ttl: 1
       value: "{{ item.instances[0].private_ip_address }}"
-      wait: true
+      overwrite: true
 
     loop: "{{ ec2_info.results }}"
 
@@ -62,7 +62,7 @@
       type: A
       ttl: 1
       value: "{{ item.instances[0].public_ip_address }}"
-      wait: true
+      overwrite: true
 
     loop: "{{ ec2_info.results }}"
     when: item.item == "frontend"
