@@ -1,4 +1,4 @@
-- name: catalouge configurations
+- name: cart configurations
   hosts: cart
   become: yes
 
