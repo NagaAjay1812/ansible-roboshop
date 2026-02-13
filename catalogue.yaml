@@ -1,17 +1,73 @@
 - name: catalouge configurations
   hosts: catalogue
   connection: local
-
+  become: yes
 
   tasks:
-  - name: Disable the current module of nodejs
+  - name: Enable nodejs:20                                        # we dont have option to enable the secific version of nodejs in dnf module s we are using command module
+    ansible.builtin.command: dnf module enable nodejs:20
+
+  - name: install nodejs
     ansible.builtin.dnf:
       name: nodejs
-      module_state: reset
-    changed_when: true # This operation always reports changed
-
-  - name: Enable nodejs:20 module stream
-    ansible.builtin.dnf:
-      name: nodejs:20
-      module_state: enabled
       state: present
+
+  - name: creating the system user roboshop
+    ansibile.builtin.user: 
+      name: roboshop
+      system: true #system user 
+      home: /app #optionally setting home
+      shell: /sbin/nologin
+      comment: roboshop system user
+
+  - name: create app directory
+    ansible.builtin.file:
+      path: /app
+      state: directory
+
+  - name: Downloading the code
+    ansibile.builtin.command: curl -o /tmp/catalogue.zip https://roboshop-artifacts.s3.amazonaws.com/catalogue-v3.zip 
+  
+  - name: Unzip the code
+    ansible.builtin.unarchive:
+      src: /tmp/catalogue.zip
+      dest: /tmp/catalogue.zip
+
+  - name: Go to the specified directory 
+    ansible.builtin.command:
+      args:
+        chdir: /app
+
+  - name: Install the dependencies
+    community.general.npm:
+      path: /app # Directory containing package.json
+      state: present
+
+  - name: copy the files
+    ansible.builtin.copy:
+      src: catalogue.service
+      dest: /etc/systemd/system/catalogue.service
+
+  - name: Start or enable catalogue with daemon-reload
+    ansible.builtin.systemd:
+      name: catalogue
+      state: started
+      enabled: yes
+      daemon_reload: yes
+
+  - name: copy mongo repo
+    ansible.builtin.copy:
+      src: mongo.repo
+      dest: /etc/yum.repos.d/mongo.repo
+
+  - name: Install MongoDB Client Package
+    ansible.builtin.dnf:
+      name: mongodb-mongosh
+      state: latest
+
+  - name: Load the data
+    ansibile.builtin.command: mongosh --host mongodb-dev.cloudkarna.in </app/db/master-data.js
+
+  
+  
+  
