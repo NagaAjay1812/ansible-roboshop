@@ -25,13 +25,15 @@
       path: /app
       state: directory
 
-  - name: Downloading the code
-    ansible.builtin.command: curl -o /tmp/catalogue.zip https://roboshop-artifacts.s3.amazonaws.com/catalogue-v3.zip 
-  
+  - name: Downloading the cataloguecode
+    ansible.builtin.get_url: 
+      url: https://roboshop-artifacts.s3.amazonaws.com/catalogue-v3.zip 
+      dest: /tmp/catalogue.zip
+      
   - name: Unzip the code
     ansible.builtin.unarchive:
       src: /tmp/catalogue.zip
-      dest: /tmp/catalogue.zip
+      dest: /app
 
   - name: Go to the specified directory 
     ansible.builtin.command:
