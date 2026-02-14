@@ -4,8 +4,8 @@
 
   tasks:
   - name: Installing mysql
-    ansible.build.dnf:
-      name: mysql
+    ansible.builtin.dnf:
+      name: mysql-server -y
       state: present
 
   - name: Updating default root password for roboshop user
