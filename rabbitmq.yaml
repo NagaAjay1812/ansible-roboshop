@@ -20,8 +20,8 @@
       state: restarted      #why we are restaring becoz if its running it will restart 
       enabled: yes
 
-  - name: create rabbitmq user
-    community.rabbitmq.rabbitmq_user:
+  - name: create rabbitmq user              
+    community.rabbitmq.rabbitmq_user:           # module is availlable on community if its not available use cmd module
       user: roboshop 
       password: roboshop123
       permissions:
