@@ -4,8 +4,12 @@
 
   tasks:
   - name: Install Maven 
-    ansible.builtin.command: dnf install maven -y
-      
+    ansible.builtin.dnf: 
+      name: "{{ item }}"
+      state: present
+    loop:
+    - maven
+    - mysql
 
   - name: creating the system shipping roboshop
     ansible.builtin.user: 
@@ -45,27 +49,49 @@
   - name: Install the dependencies
     ansible.builtin.command: mvn clean package 
     args:
-      chdir: "/app" 
+      chdir: /app 
 
   - name: moving and renaming files
     ansible.builtin.command: mv target/shipping-1.0.jar shipping.jar 
-      
+    args:
+      chdir: /app 
+
   - name: copy the shipping service
     ansible.builtin.template:        #We use the template module because it understands variables. It searches for the variable placeholders and replaces them with actual values. Otherwise, Ansible will treat them as plain text, and we may get errors. 
       src: shipping.service
       dest: /etc/systemd/system/shipping.service
 
+  - name: daemon reload
+    ansible.builtin.systemd_service:
+      daemon_reload: true
+
+  - name: install dependencie
+    ansible.builtin.pip:
+      name: "{{ item }}"
+      executable: pip3.9
+    loop:
+    - cryptography
+    - PyMySQL
+      
+  - name: import shipping data
+    community.mysql.mysql_db:
+      state: import
+      name: all
+      login_host: "{{ MYSQL_HOST }}"
+      login_user: root
+      login_password: RoboShop@1
+      target: "{{ item }}"
+    loop:
+    - /app/db/schema.sql
+    - /app/db/app-user.sql 
+    - /app/db/master-data.sql
 
   - name: Start, enable & daemon-reload shipping service
     ansible.builtin.systemd:
       name: shipping
       daemon_reload: yes
       state: restarted      #why we are restaring if its running it will restart 
-      enabled: yes
-      
-
-
-  
+      enabled: yes  
 
   
   
