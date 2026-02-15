@@ -5,8 +5,12 @@
   tasks:
   - name: Install python3
     community.general.easy_install:
-      name: python3 gcc python3-devel -y
+      name: "{{ item }}"
       state: latest
+    loop:
+    - python
+    - gcc
+    - python-devel
 
   - name: creating the system payment roboshop
     ansible.builtin.user: 
@@ -45,8 +49,8 @@
 
   - name: Install the dependencies
     ansible.builtin.pip:
-      requirements: /app/requirements.txt # Directory containing requirements.txt
-      
+      requirements: requirements.txt # Directory containing requirements.txt
+      executable: pip3.9
 
   - name: copy the payment service
     ansible.builtin.template:        #We use the template module because it understands variables. It searches for the variable placeholders and replaces them with actual values. Otherwise, Ansible will treat them as plain text, and we may get errors. 
