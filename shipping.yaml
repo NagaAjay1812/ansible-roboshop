@@ -65,7 +65,7 @@
     ansible.builtin.systemd_service:
       daemon_reload: true
 
-  - name: install dependencie
+  - name: install dependencies        #in background pthon code is connected to MySQL these libraries/dependencies are required
     ansible.builtin.pip:
       name: "{{ item }}"
       executable: pip3.9

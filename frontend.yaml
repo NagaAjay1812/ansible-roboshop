@@ -1,0 +1,48 @@
+- name: frontend configuration
+  hosts: frontend
+  become: yes
+
+  tasks:
+  - name: Enable the Nginx module stream and install the package
+    ansible.builtin.dnf:
+      name: "@nginx:1.24/server" # Use the correct module:stream/profile for your system
+      state: present
+    become: true
+
+  - name: Remove the nginx default directory
+    ansible.builtin.file:
+      path: /usr/share/nginx/html
+      state: absent
+
+  - name: Recreate the nginx  directory
+    ansible.builtin.file:
+      path: /usr/share/nginx/html 
+      state: directory
+
+  - name: Remove the frontend code
+    ansible.builtin.file:
+      src: /tmp/frontend.zip
+      state: absent
+
+  - name: Download the frontend code
+    ansible.builtin.get_url:
+      src: https://roboshop-artifacts.s3.amazonaws.com/frontend-v3.zip
+      dest: /tmp/frontend.zip
+
+  - name: Unarchive the code
+    ansible.builtin.unarchive:
+      src: /tmp/frontend.zip
+      dest: /usr/share/nginx/html 
+      remote_src: yes
+      
+  - name: copy the service file
+    ansble.builtin.template:
+      src: nginx.conf
+      dest: /etc/nginx/nginx.conf
+
+  - name: Start, enabled the nginx
+    ansible.builtin.service:
+      name: nginx
+      state: restarted
+      enabled: yes
+
