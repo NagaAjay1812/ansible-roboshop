@@ -46,10 +46,12 @@
         dest: /app
         remote_src: yes #What does remote_src mean here? The payment code is not on the Ansible control node — it is already downloaded on the target server using the get_url command. So why do we need to mention remote_src: yes? If we remove it, we get an error.
 
-    - name: Install the dependencies
+    - name: install dependencie
       ansible.builtin.pip:
-        requirements: requirements.txt # Directory containing requirements.txt
+        requirements: requirements.txt
         executable: pip3.9
+      args:
+        chdir: /app
 
     - name: copy the payment service
       ansible.builtin.template: #We use the template module because it understands variables. It searches for the variable placeholders and replaces them with actual values. Otherwise, Ansible will treat them as plain text, and we may get errors.
