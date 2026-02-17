@@ -42,7 +42,7 @@
         path: /etc/nginx/nginx.conf
         state: absent
 
-    - name: copy the service file
+    - name: copy the config file
       ansible.builtin.copy:
         src: nginx.conf
         dest: /etc/nginx/nginx.conf
