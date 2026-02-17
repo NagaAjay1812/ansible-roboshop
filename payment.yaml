@@ -4,7 +4,7 @@
 
   tasks:
     - name: Install python3
-      ansible,builtin.dnf:
+      ansible.builtin.dnf:
         name: "{{ item }}"
         state: present
       loop:
