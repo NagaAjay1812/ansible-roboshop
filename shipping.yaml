@@ -3,96 +3,91 @@
   become: yes
 
   tasks:
-  - name: Install Maven 
-    ansible.builtin.dnf: 
-      name: "{{ item }}"
-      state: present
-    loop:
-    - maven
-    - mysql
+    - name: Install Maven
+      ansible.builtin.dnf:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - maven
+        - mysql
 
-  - name: creating the system shipping roboshop
-    ansible.builtin.user: 
-      name: roboshop
-      system: true #system user 
-      home: /app #optionally setting home
-      shell: /sbin/nologin
-      comment: roboshop system user
+    - name: creating the system shipping roboshop
+      ansible.builtin.user:
+        name: roboshop
+        system: true #system user
+        home: /app #optionally setting home
+        shell: /sbin/nologin
+        comment: roboshop system user
 
+    - name: delete app directory # Why are we deleting the directory? If we are running the playbook again, that means there might be code changes, right? If the code already exists, Ansible will skip the task when we run the playbook. So is that why we are deleting it?
+      ansible.builtin.file:
+        path: /app
+        state: absent
 
-  - name: delete app directory    # Why are we deleting the directory? If we are running the playbook again, that means there might be code changes, right? If the code already exists, Ansible will skip the task when we run the playbook. So is that why we are deleting it?
-    ansible.builtin.file:
-      path: /app
-      state: absent
+    - name: create app directory
+      ansible.builtin.file:
+        path: /app
+        state: directory
 
-  - name: create app directory
-    ansible.builtin.file:
-      path: /app
-      state: directory
+    - name: Delete the shipping zip file #Why are we deleting the zip file? If we are running the playbook again, that means there might be code changes, right? If the code already exists, Ansible will skip the task when we run the playbook. So is that why we are deleting it?
+      ansible.builtin.file:
+        path: /tmp/shipping.zip
+        state: absent
 
-  - name: Delete the shipping zip file #Why are we deleting the zip file? If we are running the playbook again, that means there might be code changes, right? If the code already exists, Ansible will skip the task when we run the playbook. So is that why we are deleting it?
-    ansible.builtin.file: 
-      path: /tmp/shipping.zip
-      state: absent
+    - name: Downloading the shipping zip file
+      ansible.builtin.get_url:
+        url: https://roboshop-artifacts.s3.amazonaws.com/shipping-v3.zip
+        dest: /tmp/shipping.zip
 
-  - name: Downloading the shipping zip file
-    ansible.builtin.get_url: 
-      url: https://roboshop-artifacts.s3.amazonaws.com/shipping-v3.zip 
-      dest: /tmp/shipping.zip
+    - name: Unzip the code
+      ansible.builtin.unarchive:
+        src: /tmp/shipping.zip
+        dest: /app
+        remote_src: yes #What does remote_src mean here? The shipping code is not on the Ansible control node — it is already downloaded on the target server using the get_url command. So why do we need to mention remote_src: yes? If we remove it, we get an error.
 
-  - name: Unzip the code
-    ansible.builtin.unarchive:
-      src: /tmp/shipping.zip
-      dest: /app
-      remote_src: yes #What does remote_src mean here? The shipping code is not on the Ansible control node — it is already downloaded on the target server using the get_url command. So why do we need to mention remote_src: yes? If we remove it, we get an error.
+    - name: Install the dependencies
+      ansible.builtin.command: mvn clean package
+      args:
+        chdir: /app
 
-  - name: Install the dependencies
-    ansible.builtin.command: mvn clean package 
-    args:
-      chdir: /app 
+    - name: moving and renaming files
+      ansible.builtin.command: mv target/shipping-1.0.jar shipping.jar
+      args:
+        chdir: /app
 
-  - name: moving and renaming files
-    ansible.builtin.command: mv target/shipping-1.0.jar shipping.jar 
-    args:
-      chdir: /app 
+    - name: copy the shipping service
+      ansible.builtin.template: #We use the template module because it understands variables. It searches for the variable placeholders and replaces them with actual values. Otherwise, Ansible will treat them as plain text, and we may get errors.
+        src: shipping.service
+        dest: /etc/systemd/system/shipping.service
 
-  - name: copy the shipping service
-    ansible.builtin.template:        #We use the template module because it understands variables. It searches for the variable placeholders and replaces them with actual values. Otherwise, Ansible will treat them as plain text, and we may get errors. 
-      src: shipping.service
-      dest: /etc/systemd/system/shipping.service
+    - name: daemon reload
+      ansible.builtin.systemd_service:
+        daemon_reload: true
 
-  - name: daemon reload
-    ansible.builtin.systemd_service:
-      daemon_reload: true
+    - name: install dependencies #in background python code is connected to MySQL these libraries/dependencies are required
+      ansible.builtin.pip:
+        name: "{{ item }}"
+        executable: pip3.9
+      loop:
+        - cryptography
+        - PyMySQL
 
-  - name: install dependencies        #in background pthon code is connected to MySQL these libraries/dependencies are required
-    ansible.builtin.pip:
-      name: "{{ item }}"
-      executable: pip3.9
-    loop:
-    - cryptography
-    - PyMySQL
-      
-  - name: import shipping data
-    community.mysql.mysql_db:
-      state: import
-      name: all
-      login_host: "{{ MYSQL_HOST }}"
-      login_user: root
-      login_password: RoboShop@1
-      target: "{{ item }}"
-    loop:
-    - /app/db/schema.sql
-    - /app/db/app-user.sql 
-    - /app/db/master-data.sql
+    - name: import shipping data
+      community.mysql.mysql_db:
+        state: import
+        name: all
+        login_host: "{{ MYSQL_HOST }}"
+        login_user: root
+        login_password: RoboShop@1
+        target: "{{ item }}"
+      loop:
+        - /app/db/schema.sql
+        - /app/db/app-user.sql
+        - /app/db/master-data.sql
 
-  - name: Start, enable & daemon-reload shipping service
-    ansible.builtin.systemd:
-      name: shipping
-      daemon_reload: yes
-      state: restarted      #why we are restaring if its running it will restart 
-      enabled: yes  
-
-  
-  
-  
+    - name: Start, enable & daemon-reload shipping service
+      ansible.builtin.systemd:
+        name: shipping
+        daemon_reload: yes
+        state: restarted #why we are restaring if its running it will restart
+        enabled: yes
