@@ -23,7 +23,7 @@
 
     - name: Remove the frontend code
       ansible.builtin.file:
-        src: /tmp/frontend.zip
+        path: /tmp/frontend.zip
         state: absent
 
     - name: Download the frontend code
