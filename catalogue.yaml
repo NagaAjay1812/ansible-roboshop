@@ -79,7 +79,7 @@
     when: catalogue_output.stdout | int < 0  # before catalogue_output.stdout<0 we cant compare string with number so i converted string to integer using pipe
 
 
-  - name: Start or enable catalogue with daemon-reload
+  - name: Start, enable & daemon-reload catalogue service
     ansible.builtin.systemd:
       name: catalogue
       daemon_reload: yes
